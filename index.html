@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Matemática Divertida — Jogo Educativo de Matemática para Crianças</title>
+    <meta name="description" content="Matemática Divertida é um jogo educativo de tabuleiro para crianças dos 6 aos 8 anos. Aprende matemática divertindo-te: adições, subtrações, multiplicações e divisões com dados e personagens desbloqueáveis." />
+    <meta name="keywords" content="jogo matemática crianças, educativo, adição subtração multiplicação, jogo tabuleiro online, aprender matemática, 6 anos, 7 anos, 8 anos" />
+    <meta name="robots" content="index, follow" />
+    <meta name="rating" content="general" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Mat. Divertida" />
+    <meta name="author" content="Matemática Divertida" />
+    <meta name="language" content="Portuguese" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Matemática Divertida — Jogo Educativo para Crianças" />
+    <meta property="og:description" content="Jogo educativo de tabuleiro com 100 casas, dados e perguntas de matemática para crianças dos 6 aos 8 anos. Grátis, sem registo." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/opengraph.jpg" />
+    <meta property="og:url" content="https://dice-quest--b82santos.replit.app/" />
+    <meta property="og:locale" content="pt_PT" />
+    <meta property="og:site_name" content="Matemática Divertida" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Matemática Divertida — Jogo Educativo para Crianças" />
+    <meta name="twitter:description" content="Jogo educativo de tabuleiro com dados e matemática para crianças dos 6 aos 8 anos." />
+    <meta name="twitter:image" content="/opengraph.jpg" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
+    <meta name="theme-color" content="#6366f1" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="canonical" href="https://dice-quest--b82santos.replit.app/" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Service Worker registration -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
+    </script>
+
+    <style>
+      /* Static content shown to crawlers and while JS loads */
+      #static-landing {
+        font-family: 'Nunito', Arial, sans-serif;
+        background: linear-gradient(160deg, #e0f2fe 0%, #ddd6fe 100%);
+        min-height: 100vh;
+        padding: 0;
+        margin: 0;
+      }
+      /* Hide static content once React has mounted */
+      #root:not(:empty) + #static-landing {
+        display: none;
+      }
+      #static-landing header {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 24px 20px;
+        text-align: center;
+      }
+      #static-landing header h1 { margin: 0 0 8px; font-size: 28px; font-weight: 900; }
+      #static-landing header p { margin: 0; font-size: 16px; opacity: 0.9; }
+      #static-landing .content { max-width: 720px; margin: 0 auto; padding: 28px 20px 48px; }
+      #static-landing section {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 16px rgba(99,102,241,0.08);
+        border: 1px solid rgba(99,102,241,0.1);
+      }
+      #static-landing h2 { color: #4338ca; font-size: 20px; margin: 0 0 14px; font-weight: 900; }
+      #static-landing h3 { color: #6366f1; font-size: 17px; margin: 0 0 10px; font-weight: 800; }
+      #static-landing p, #static-landing li { color: #334155; font-size: 15px; line-height: 1.75; font-weight: 500; }
+      #static-landing ul { padding-left: 22px; margin: 0; }
+      #static-landing li { margin-bottom: 6px; }
+      #static-landing .badge {
+        display: inline-block; background: #ede9fe; color: #7c3aed;
+        border-radius: 8px; padding: 3px 12px; font-size: 13px; font-weight: 700; margin: 4px 4px 4px 0;
+      }
+      #static-landing .badge-green { background: #dcfce7; color: #16a34a; }
+      #static-landing .cta {
+        display: block; text-align: center; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white; font-size: 18px; font-weight: 900; padding: 18px 32px;
+        border-radius: 16px; text-decoration: none; margin: 8px 0;
+        box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+      }
+      #static-landing footer { text-align: center; color: #94a3b8; font-size: 13px; padding: 0 20px 32px; }
+      #static-landing footer a { color: #6366f1; text-decoration: underline; }
+    </style>
+    <script type="module" crossorigin src="/assets/index-kpZ07u5R.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D84QzMRt.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Static content for search engines and crawlers (hidden once React loads) -->
+    <div id="static-landing" aria-hidden="true">
+      <header>
+        <div style="font-size:52px;margin-bottom:8px">🎓🎲</div>
+        <h1>Matemática Divertida</h1>
+        <p>O jogo de tabuleiro educativo mais divertido para crianças dos 6 aos 8 anos</p>
+      </header>
+
+      <div class="content">
+
+        <section>
+          <h2>O que é a Matemática Divertida?</h2>
+          <p>
+            <strong>Matemática Divertida — Jogo da Glória</strong> é um jogo educativo de tabuleiro digital
+            com 100 casas, criado especialmente para crianças dos 6 aos 8 anos. O jogo combina a diversão
+            de lançar dados com perguntas de matemática adaptadas à idade, ajudando as crianças a aprender
+            e praticar operações matemáticas de forma lúdica e motivadora.
+          </p>
+          <p>
+            O tabuleiro percorre 3 biomas diferentes — <strong>Floresta 🌿</strong>, <strong>Deserto 🏜️</strong>
+            e <strong>Montanha ⛰️</strong> — tornando cada partida uma aventura visual única. Casas especiais
+            como a Casa da Sorte ⭐, a Armadilha 💀, o Propulsor 🚀 e o Arco-Íris Mágico 🌈 tornam o jogo
+            ainda mais emocionante e imprevisível.
+          </p>
+        </section>
+
+        <section>
+          <h2>Como se joga?</h2>
+          <ol style="padding-left:22px;color:#334155;font-size:15px;line-height:1.9;font-weight:500">
+            <li><strong>Escolhe o teu idioma</strong> — Português (PT-PT), Português (PT-BR) ou English</li>
+            <li><strong>Escolhe o teu personagem</strong> — Explorador, Cientista (grátis) ou desbloqueias Herói, Amazona, Mago, Feiticeira, Vampiro ou Vampira com diamantes 💎</li>
+            <li><strong>Escolhe a dificuldade</strong> — Fácil, Médio, Difícil ou Génio</li>
+            <li><strong>Lança os dados 🎲</strong> — avança no tabuleiro o número de casas que saiu</li>
+            <li><strong>Responde à pergunta de matemática 🧮</strong> — acerta e ganhas diamantes; erra e continua mesmo assim!</li>
+            <li><strong>Chega à casa 100 🏆</strong> — ganha o jogo e recebe um bónus de diamantes!</li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>Níveis de Dificuldade</h2>
+
+          <h3>🟢 Fácil — Para começar</h3>
+          <p>Adições e subtrações simples de 1 dígito. Perfeito para os primeiros passos na matemática.
+          Recompensa: <span class="badge">+3 💎 por pergunta</span> <span class="badge">+100 💎 ao chegar</span></p>
+
+          <h3>🟡 Médio — A crescer</h3>
+          <p>Adições e subtrações de 2 dígitos. Para crianças que já dominam o básico e querem um desafio maior.
+          Recompensa: <span class="badge">+5 💎 por pergunta</span> <span class="badge">+200 💎 ao chegar</span></p>
+
+          <h3>🟠 Difícil — Desafio a sério</h3>
+          <p>Multiplicações da tabuada (1 dígito × 1 dígito) e divisões simples. Errar recua 2 casas — há que pensar bem!
+          Recompensa: <span class="badge">+5 💎 por pergunta</span> <span class="badge">+300 💎 ao chegar</span></p>
+
+          <h3>🔴 Génio 🔒 — O nível máximo</h3>
+          <p>Somas de 4 dígitos, subtrações de 3 dígitos, multiplicações de 1×2 dígitos e divisões exatas de 2÷1 dígitos.
+          Errar volta à casa de onde partiste! Desbloqueia com 1500 💎.
+          Recompensa: <span class="badge">+15 💎 por pergunta</span> <span class="badge">+500 💎 ao chegar</span></p>
+        </section>
+
+        <section>
+          <h2>Personagens Desbloqueáveis</h2>
+          <p>Começa com dois personagens grátis e vai desbloqueando mais à medida que acumulas diamantes a jogar:</p>
+          <ul>
+            <li><strong>Explorador / Cientista</strong> — <span class="badge badge-green">Grátis</span></li>
+            <li><strong>Herói / Amazona</strong> — <span class="badge">75 💎</span></li>
+            <li><strong>Mago / Feiticeira</strong> — <span class="badge">150 💎</span></li>
+            <li><strong>Vampiro / Vampira</strong> — <span class="badge">200 💎</span></li>
+          </ul>
+          <p>Os diamantes ganhos ficam guardados no dispositivo e nunca expiram. Tudo se pode desbloquear a jogar; as compras de diamantes são opcionais e exigem a confirmação de um adulto.</p>
+        </section>
+
+        <section>
+          <h2>Porquê a Matemática Divertida?</h2>
+          <ul>
+            <li>✅ <strong>Grátis para jogar</strong> — sem subscrições; compras de diamantes opcionais</li>
+            <li>✅ <strong>Sem registo</strong> — começa a jogar imediatamente, sem criar conta</li>
+            <li>✅ <strong>Seguro para crianças</strong> — sem publicidade, sem recolha de dados pessoais (COPPA / RGPD)</li>
+            <li>✅ <strong>Funciona offline</strong> — instalável como app (PWA), joga sem internet</li>
+            <li>✅ <strong>Três idiomas</strong> — Português (PT-PT), Português (PT-BR) e English</li>
+            <li>✅ <strong>Adaptado ao currículo</strong> — alinhado com o programa de matemática do 1.º Ciclo</li>
+            <li>✅ <strong>Motivação por recompensas</strong> — sistema de diamantes mantém as crianças envolvidas</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Disponível em</h2>
+          <p>
+            Podes jogar diretamente no browser ou instalar como aplicação no telemóvel ou tablet
+            (Android e iOS). Também disponível na <strong>Google Play Store</strong> como aplicação nativa.
+          </p>
+          <a class="cta" href="/">🎲 Jogar Agora — É Grátis!</a>
+          <a class="cta" href="/sobre" style="background:white;color:#6366f1;box-shadow:0 4px 16px rgba(99,102,241,0.15);border:2px solid #6366f1;">
+            📖 Saber Mais
+          </a>
+        </section>
+
+        <section>
+          <h2>Sobre a Privacidade</h2>
+          <p>
+            A <strong>Matemática Divertida</strong> foi concebida com a privacidade das crianças em primeiro lugar.
+            A app não recolhe dados pessoais, não usa cookies de rastreamento, não apresenta publicidade
+            e todo o progresso fica guardado exclusivamente no dispositivo, em conformidade com as regras
+            COPPA e RGPD.
+          </p>
+          <p>
+            <a href="/privacidade" style="color:#6366f1;font-weight:700;">📄 Ler a Política de Privacidade completa →</a>
+          </p>
+        </section>
+
+        <a class="cta" href="/">🎲 Começar a Jogar Agora!</a>
+      </div>
+
+      <footer>
+        <p>© 2025 Matemática Divertida — Jogo da Glória</p>
+        <p>Jogo educativo de matemática para crianças dos 6 aos 8 anos | PT-PT · PT-BR · EN</p>
+        <p><a href="/privacidade">Política de Privacidade</a> · <a href="/sobre">Sobre o Jogo</a> · <a href="/info.html">Informação</a></p>
+      </footer>
+    </div>
+
+  </body>
+</html>

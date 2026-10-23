@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matemática Divertida — Jogo Educativo de Matemática para Crianças 6-8 Anos</title>
+  <meta name="description" content="Matemática Divertida é um jogo educativo de tabuleiro gratuito para crianças dos 6 aos 8 anos. Aprende adições, subtrações, multiplicações e divisões de forma divertida com dados, personagens e diamantes." />
+  <meta name="keywords" content="jogo educativo matemática crianças, aprender matemática divertido, jogo tabuleiro online, adição subtração multiplicação divisão, 6 anos 7 anos 8 anos, jogo grátis crianças" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="Matemática Divertida" />
+  <meta name="rating" content="general" />
+  <link rel="canonical" href="https://dice-quest--b82santos.replit.app/info.html" />
+  <link rel="icon" type="image/png" href="/icon-512.png" />
+
+  <meta property="og:title" content="Matemática Divertida — Jogo Educativo para Crianças" />
+  <meta property="og:description" content="Jogo gratuito de tabuleiro com dados e perguntas de matemática para crianças dos 6 aos 8 anos. Sem registo, funciona offline." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/opengraph.jpg" />
+  <meta property="og:url" content="https://dice-quest--b82santos.replit.app/info.html" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Nunito', Arial, sans-serif;
+      background: linear-gradient(160deg, #e0f2fe 0%, #ddd6fe 100%);
+      min-height: 100vh;
+      color: #334155;
+    }
+    header {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #ec4899 100%);
+      color: white;
+      padding: 40px 20px 36px;
+      text-align: center;
+    }
+    header .emoji { font-size: 64px; margin-bottom: 12px; }
+    header h1 { margin: 0 0 10px; font-size: 32px; font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    header .tagline { margin: 0; font-size: 17px; opacity: 0.9; font-weight: 600; }
+    nav {
+      background: rgba(255,255,255,0.95);
+      padding: 14px 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: #6366f1; font-weight: 700; text-decoration: none;
+      margin: 0 12px; font-size: 14px;
+    }
+    nav a:hover { text-decoration: underline; }
+    .content { max-width: 800px; margin: 0 auto; padding: 32px 20px 64px; }
+    section {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.1);
+    }
+    h2 { color: #4338ca; font-size: 22px; margin: 0 0 16px; font-weight: 900; }
+    h3 { color: #6366f1; font-size: 18px; margin: 20px 0 10px; font-weight: 800; }
+    p { font-size: 15px; line-height: 1.8; margin: 0 0 12px; }
+    p:last-child { margin-bottom: 0; }
+    ul, ol { padding-left: 24px; margin: 0 0 12px; }
+    li { font-size: 15px; line-height: 1.8; margin-bottom: 6px; }
+    .badge {
+      display: inline-block;
+      border-radius: 8px; padding: 3px 12px;
+      font-size: 13px; font-weight: 700; margin: 3px;
+    }
+    .badge-purple { background: #ede9fe; color: #7c3aed; }
+    .badge-green { background: #dcfce7; color: #16a34a; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .difficulty-card {
+      border-radius: 14px; padding: 18px 20px; margin-bottom: 14px;
+      border-left: 6px solid;
+    }
+    .diff-easy   { background: #f0fdf4; border-color: #16a34a; }
+    .diff-medium { background: #fefce8; border-color: #ca8a04; }
+    .diff-hard   { background: #fff7ed; border-color: #ea580c; }
+    .diff-genius { background: #fdf4ff; border-color: #9333ea; }
+    .diff-title { font-size: 18px; font-weight: 900; margin: 0 0 6px; }
+    .diff-desc  { font-size: 14px; margin: 0 0 8px; color: #475569; }
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .char-card {
+      background: linear-gradient(160deg, #f0f4ff, #faf5ff);
+      border-radius: 14px; padding: 16px 12px;
+      text-align: center;
+      border: 1px solid rgba(99,102,241,0.15);
+    }
+    .char-card .char-icon { font-size: 36px; margin-bottom: 8px; }
+    .char-card .char-name { font-weight: 800; font-size: 14px; color: #1e293b; display: block; margin-bottom: 4px; }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .feature-item {
+      background: linear-gradient(90deg, #f0f4ff, #faf5ff);
+      border-radius: 12px; padding: 14px 16px;
+      border: 1px solid rgba(99,102,241,0.12);
+      font-size: 14px; font-weight: 600; color: #334155;
+    }
+    .cta-primary {
+      display: block; text-align: center;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white; font-size: 20px; font-weight: 900;
+      padding: 20px 32px; border-radius: 18px;
+      text-decoration: none; margin: 8px 0;
+      box-shadow: 0 6px 24px rgba(99,102,241,0.45);
+      transition: transform 0.1s;
+    }
+    .cta-primary:hover { transform: translateY(-2px); }
+    .cta-secondary {
+      display: block; text-align: center;
+      background: white; color: #6366f1;
+      font-size: 16px; font-weight: 800;
+      padding: 16px 32px; border-radius: 14px;
+      text-decoration: none; margin: 8px 0;
+      box-shadow: 0 4px 16px rgba(99,102,241,0.15);
+      border: 2px solid #6366f1;
+    }
+    footer {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      color: rgba(255,255,255,0.75);
+      text-align: center; padding: 32px 20px;
+      font-size: 13px;
+    }
+    footer a { color: #a5b4fc; text-decoration: underline; }
+    footer p { margin: 4px 0; }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 24px; }
+      section { padding: 20px 18px; }
+      .char-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="emoji">🎓🎲</div>
+  <h1>Matemática Divertida</h1>
+  <p class="tagline">O jogo educativo de tabuleiro mais divertido para crianças dos 6 aos 8 anos</p>
+</header>
+
+<nav>
+  <a href="#o-que-e">O que é</a>
+  <a href="#como-jogar">Como jogar</a>
+  <a href="#dificuldades">Dificuldades</a>
+  <a href="#personagens">Personagens</a>
+  <a href="#porque">Porquê</a>
+  <a href="/">🎮 Jogar</a>
+</nav>
+
+<div class="content">
+
+  <section id="o-que-e">
+    <h2>🎓 O que é a Matemática Divertida?</h2>
+    <p>
+      <strong>Matemática Divertida — Jogo da Glória</strong> é um <strong>jogo educativo de tabuleiro
+      digital gratuito</strong>, criado especialmente para crianças dos 6 aos 8 anos. O jogo transforma
+      a prática da matemática numa aventura divertida, combinando o emocionante lançamento de dados com
+      perguntas de matemática cuidadosamente adaptadas a cada nível de aprendizagem.
+    </p>
+    <p>
+      O tabuleiro tem <strong>100 casas</strong> e percorre três biomas distintos:
+      <strong>Floresta 🌿</strong>, <strong>Deserto 🏜️</strong> e <strong>Montanha ⛰️</strong>.
+      Casas especiais como a <strong>Casa da Sorte ⭐</strong>, a <strong>Armadilha 💀</strong>,
+      o <strong>Propulsor 🚀</strong> e o <strong>Arco-Íris Mágico 🌈</strong> tornam cada partida
+      única e cheia de surpresas.
+    </p>
+    <p>
+      Disponível em três idiomas — <strong>Português (PT-PT)</strong>, <strong>Português (PT-BR)</strong>
+      e <strong>English</strong> — e jogável diretamente no browser ou instalado como app no telemóvel
+      ou tablet (PWA). Também disponível na <strong>Google Play Store</strong>.
+    </p>
+
+    <a class="cta-primary" href="/">🎲 Jogar Agora — Grátis!</a>
+  </section>
+
+  <section id="como-jogar">
+    <h2>🕹️ Como se Joga?</h2>
+
+    <h3>Passo 1 — Escolhe o teu idioma</h3>
+    <p>Seleciona entre Português (PT-PT), Português (PT-BR) ou English. O jogo ficará completamente no idioma escolhido.</p>
+
+    <h3>Passo 2 — Escolhe o teu personagem</h3>
+    <p>Dois personagens estão disponíveis gratuitamente — o <strong>Explorador</strong> e a <strong>Cientista</strong>. Desbloqueias os restantes à medida que acumulas diamantes 💎 a jogar.</p>
+
+    <h3>Passo 3 — Escolhe a dificuldade</h3>
+    <p>Existem 4 níveis: <strong>Fácil</strong>, <strong>Médio</strong>, <strong>Difícil</strong> e <strong>Génio</strong> (desbloqueável com 1500 💎). Cada nível tem operações matemáticas diferentes e recompensas distintas.</p>
+
+    <h3>Passo 4 — Lança os dados! 🎲</h3>
+    <p>Carrega no botão de lançar dados. O teu personagem avança no tabuleiro o número de casas correspondente ao resultado. Se calhar numa casa especial, algo inesperado pode acontecer!</p>
+
+    <h3>Passo 5 — Responde à pergunta de matemática 🧮</h3>
+    <p>
+      Uma pergunta de matemática adaptada ao nível escolhido aparece no ecrã. Tens de calcular a resposta correta e digitá-la.
+    </p>
+    <ul>
+      <li><strong>Acertas →</strong> ganhas diamantes 💎 e avanças no tabuleiro! Aparece a mensagem <em>"BOA!"</em></li>
+      <li><strong>Erras →</strong> continua mesmo assim (em Fácil/Médio), recuas 2 casas (em Difícil) ou voltas à casa anterior (em Génio)</li>
+    </ul>
+
+    <h3>Passo 6 — Chega à casa 100! 🏆</h3>
+    <p>O objetivo é percorrer as 100 casas do tabuleiro. Quando chegares à última casa, ganhas um grande bónus de diamantes e uma animação de parabéns! Podes então jogar o nível seguinte.</p>
+  </section>
+
+  <section id="dificuldades">
+    <h2>📊 Níveis de Dificuldade</h2>
+
+    <div class="difficulty-card diff-easy">
+      <p class="diff-title" style="color:#15803d">🟢 Fácil — Para Começar</p>
+      <p class="diff-desc">Adições e subtrações simples de 1 dígito (ex: 3 + 5, 9 - 4). Perfeito para crianças que estão a dar os primeiros passos na matemática.</p>
+      <p><span class="badge badge-green">+3 💎 por resposta certa</span> <span class="badge badge-green">+100 💎 ao chegar ao fim</span></p>
+    </div>
+
+    <div class="difficulty-card diff-medium">
+      <p class="diff-title" style="color:#a16207">🟡 Médio — A Crescer</p>
+      <p class="diff-desc">Adições e subtrações de 2 dígitos (ex: 34 + 27, 65 - 38). Para crianças que já dominam o básico e querem um desafio maior.</p>
+      <p><span class="badge badge-yellow">+5 💎 por resposta certa</span> <span class="badge badge-yellow">+200 💎 ao chegar ao fim</span></p>
+    </div>
+
+    <div class="difficulty-card diff-hard">
+      <p class="diff-title" style="color:#c2410c">🟠 Difícil — Desafio a Sério</p>
+      <p class="diff-desc">Multiplicações da tabuada (1 dígito × 1 dígito) e divisões simples. Errar recua 2 casas — há que pensar bem antes de responder!</p>
+      <p><span class="badge badge-purple">+5 💎 por resposta certa</span> <span class="badge badge-purple">+300 💎 ao chegar ao fim</span></p>
+    </div>
+
+    <div class="difficulty-card diff-genius">
+      <p class="diff-title" style="color:#7e22ce">🔴 Génio 🔒 — O Nível Máximo</p>
+      <p class="diff-desc">
+        Somas de 4 dígitos, subtrações de 3 dígitos, multiplicações de 1×2 dígitos e divisões exatas de 2÷1 dígitos.
+        Errar faz voltar à casa de onde partiste antes de lançar os dados — o nível mais exigente!
+        Desbloqueia com 1500 💎.
+      </p>
+      <p><span class="badge badge-red">+15 💎 por resposta certa</span> <span class="badge badge-red">+500 💎 ao chegar ao fim</span></p>
+    </div>
+  </section>
+
+  <section id="personagens">
+    <h2>🧙 Personagens Desbloqueáveis</h2>
+    <p>Começa com dois personagens grátis e vai desbloqueando os restantes com os diamantes que ganhas a jogar. Os diamantes ganhos nunca expiram e guardam-se automaticamente no teu dispositivo.</p>
+
+    <div class="char-grid">
+      <div class="char-card">
+        <div class="char-icon">🧭</div>
+        <span class="char-name">Explorador</span>
+        <span class="badge badge-green">Grátis</span>
+      </div>
+      <div class="char-card">
+        <div class="char-icon">🔬</div>
+        <span class="char-name">Cientista</span>
+        <span class="badge badge-green">Grátis</span>
+      </div>
+      <div class="char-card">
+        <div class="char-icon">🦸</div>
+        <span class="char-name">Herói</span>
+        <span class="badge badge-purple">75 💎</span>
+      </div>
+      <div class="char-card">
+        <div class="char-icon">🏹</div>
+        <span class="char-name">Amazona</span>
+        <span class="badge badge-purple">75 💎</span>
+      </div>
+      <div class="char-card">
+        <div class="char-icon">🧙</div>
+        <span class="char-name">Mago</span>
+        <span class="badge badge-purple">150 💎</span>
+      </div>
+      <div class="char-card">
+        <div class="char-icon">🔮</div>
+        <span class="char-name">Feiticeira</span>
+        <span class="badge badge-purple">150 💎</span>
+      </div>
+      <div class="char-card">
+        <div class="char-icon">🧛</div>
+        <span class="char-name">Vampiro</span>
+        <span class="badge badge-red">200 💎</span>
+      </div>
+      <div class="char-card">
+        <div class="char-icon">🧛‍♀️</div>
+        <span class="char-name">Vampira</span>
+        <span class="badge badge-red">200 💎</span>
+      </div>
+    </div>
+
+    <p style="margin-top:16px">
+      <strong>Importante:</strong> Todos os personagens podem ser desbloqueados com diamantes ganhos a jogar.
+      A app inclui compras opcionais de diamantes na Google Play, que exigem a confirmação de um adulto.
+    </p>
+  </section>
+
+  <section id="porque">
+    <h2>✅ Porquê a Matemática Divertida?</h2>
+    <div class="feature-grid">
+      <div class="feature-item">🆓 <strong>Grátis para jogar</strong><br>Sem subscrições; compras de diamantes opcionais</div>
+      <div class="feature-item">⚡ <strong>Sem registo</strong><br>Começa a jogar imediatamente</div>
+      <div class="feature-item">🛡️ <strong>Seguro para crianças</strong><br>COPPA e RGPD compliant</div>
+      <div class="feature-item">📶 <strong>Funciona offline</strong><br>Instalável como PWA</div>
+      <div class="feature-item">🌍 <strong>Três idiomas</strong><br>PT-PT · PT-BR · English</div>
+      <div class="feature-item">📚 <strong>Alinhado ao currículo</strong><br>Programa do 1.º Ciclo</div>
+      <div class="feature-item">💎 <strong>Sistema de recompensas</strong><br>Mantém a motivação</div>
+      <div class="feature-item">🎮 <strong>Google Play Store</strong><br>App nativa Android</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>🔒 Privacidade e Segurança</h2>
+    <p>
+      A <strong>Matemática Divertida</strong> foi desenvolvida com a privacidade e segurança das crianças como prioridade absoluta:
+    </p>
+    <ul>
+      <li>✅ Não recolhe dados pessoais de crianças</li>
+      <li>✅ Não usa cookies de rastreamento ou publicidade comportamental</li>
+      <li>✅ O progresso ganho a jogar fica guardado no dispositivo; os diamantes comprados ficam numa carteira anónima</li>
+      <li>✅ Sem publicidade — nenhum anúncio é apresentado na app</li>
+      <li>✅ Não requer registo nem email</li>
+      <li>✅ Sem chat, sem redes sociais, sem funcionalidades de partilha de dados</li>
+    </ul>
+    <p>
+      <a href="/privacidade" style="color:#6366f1;font-weight:700;text-decoration:underline;">
+        📄 Ler a Política de Privacidade completa →
+      </a>
+    </p>
+  </section>
+
+  <section>
+    <h2>🎮 Pronto para Jogar?</h2>
+    <p>
+      Joga agora mesmo no browser — sem instalar nada, sem criar conta e sem pagar para jogar.
+      Ou instala a app gratuita no teu dispositivo Android para jogar a qualquer hora, mesmo sem internet!
+    </p>
+    <a class="cta-primary" href="/">🎲 Jogar Agora — Grátis!</a>
+    <a class="cta-secondary" href="/sobre">📖 Mais Informação sobre o Jogo</a>
+  </section>
+
+</div>
+
+<footer>
+  <p>🎓 <strong>Matemática Divertida — Jogo da Glória</strong></p>
+  <p>Jogo educativo de matemática para crianças dos 6 aos 8 anos</p>
+  <p>Português (PT-PT) · Português (PT-BR) · English</p>
+  <p style="margin-top:12px">
+    <a href="/">Jogar</a> ·
+    <a href="/sobre">Sobre o Jogo</a> ·
+    <a href="/privacidade">Política de Privacidade</a> ·
+    <a href="/sitemap.xml">Sitemap</a>
+  </p>
+  <p style="margin-top:12px">© 2025 Matemática Divertida. Todos os direitos reservados.</p>
+</footer>
+
+</body>
+</html>

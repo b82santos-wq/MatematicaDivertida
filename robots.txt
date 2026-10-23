@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dice-quest--b82santos.replit.app/sitemap.xml
