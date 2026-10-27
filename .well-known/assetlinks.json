@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.matematicadivertida.app",
+        "sha256_cert_fingerprints": ["2D:66:E2:7F:B2:E4:5C:98:CD:F6:C7:46:B9:EA:8C:4F:7B:52:19:27:A2:5C:18:E1:2C:92:B3:FB:F4:48:98:E7"]
+      }
+    }]
