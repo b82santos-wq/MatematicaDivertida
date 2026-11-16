@@ -1,197 +1,197 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { useGameState } from "@/context/game-state-context";
-import { useOnlineStatus } from "@/hooks/use-online-status";
-
-export type StoreSupport = "checking" | "supported" | "unsupported";
-export type WalletState = "idle" | "loading" | "ready" | "error";
-export type PurchaseOutcome = "credited" | "pending" | "cancelled" | "failed";
-export type RestoreResult = "ok" | "same" | "needs-confirm";
-
-const PRODUCT_IDS = ["diamantes_500", "diamantes_1300"];
-const PLAY_BILLING = "https://google.com";
-
-interface ItemPrice { currency: string; value: string }
-interface ItemDetails { itemId: string; title?: string; price: ItemPrice }
-
-interface BillingValue {
-  online: boolean;
-  status: { ready: boolean } | null;
-  statusError: boolean;
-  store: StoreSupport;
-  prices: Partial<Record<string, ItemPrice>>;
-  pricesLoaded: boolean;
-  wallet: any;
-  walletState: WalletState;
-  hasToken: boolean;
-  pending: any[];
-  verifying: boolean;
-  checkoutActive: boolean;
-  reconcileError: string | null;
-  totalDiamonds: number;
-  paidDiamonds: number;
-  canBuy: (productId: string) => boolean;
-  buy: (productId: string, label: string) => Promise<PurchaseOutcome>;
-  reconcile: () => Promise<void>;
-  refresh: () => void;
-  activate: () => void;
-  unlock: (kind: "character" | "difficulty", itemId: string, cost: number) => Promise<boolean>;
-  canAffordWithLive: (cost: number) => boolean;
-  revealRecoveryKey: () => string | null;
-  restore: (key: string, force: boolean) => Promise<RestoreResult>;
-  lastPurchaseError: string | null;
-}
-
-const BillingContext = createContext<BillingValue | null>(null);
-
-export function BillingProvider({ children }: { children: ReactNode }) {
-  const { updateSnapshot, readSnapshot, snapshot } = useGameState();
-  const online = useOnlineStatus();
-  
-  const [status] = useState({ ready: true });
-  const [statusError] = useState(false);
-  const [store, setStore] = useState<StoreSupport>("checking");
-  const [prices, setPrices] = useState<Partial<Record<string, ItemPrice>>>({});
-  const [pricesLoaded, setPricesLoaded] = useState(false);
-  
-  const [walletState] = useState<WalletState>("ready");
-  const [checkoutActive, setCheckoutActive] = useState(false);
-  const [lastPurchaseError, setLastPurchaseError] = useState<string | null>(null);
-  
-  const checkoutRef = useRef(false);
-
-  useEffect(() => {
-    const hasDigitalGoods = typeof window !== "undefined" && "getDigitalGoodsService" in window && typeof PaymentRequest !== "undefined";
-    if (!hasDigitalGoods) { setStore("unsupported"); return; }
-    
-    (async () => {
-      try {
-        const svc = await (window as any).getDigitalGoodsService(PLAY_BILLING);
-        if (!svc) { setStore("unsupported"); return; }
-        setStore("supported");
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <script>
+      // Intercetor de pedidos à API do Replit para correr em modo 100% estático local
+      const originalFetch = window.fetch;
+      window.fetch = async function(...args) {
+        const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || "";
         
-        const details = await svc.getDetails(PRODUCT_IDS);
-        const out: Record<string, ItemPrice> = {};
-        for (const d of details) {
-          if (PRODUCT_IDS.includes(d.itemId) && d.price) out[d.itemId] = d.price;
+        // 1. Simula o estado do servidor como ativo (remove o erro de indisponibilidade)
+        if (url.includes('/api/billing/status') || url.includes('/api/')) {
+          return new Response(JSON.stringify({ ready: true, status: "active" }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          });
         }
-        setPrices(out);
-      } catch {
-        setStore("unsupported");
-      } finally {
-        setPricesLoaded(true);
-      }
-    })();
-  }, []);
-
-  const canBuy = useCallback((productId: string) =>
-    store === "supported" && !!prices[productId] && !checkoutActive,
-  [store, prices, checkoutActive]);
-
-  const buy = useCallback((productId: string, label: string): Promise<PurchaseOutcome> => {
-    const price = prices[productId];
-    if (checkoutRef.current || !canBuy(productId) || !price) return Promise.resolve("failed");
-    
-    checkoutRef.current = true;
-    setCheckoutActive(true);
-    setLastPurchaseError(null);
-    
-    let shown: Promise<PaymentResponse>;
-    try {
-      const req = new PaymentRequest(
-        [{ supportedMethods: PLAY_BILLING, data: { sku: productId } }],
-        { total: { label, amount: { currency: price.currency, value: price.value } } },
-      );
-      shown = req.show();
-    } catch {
-      checkoutRef.current = false;
-      setCheckoutActive(false);
-      setLastPurchaseError("purchaseFailed");
-      return Promise.resolve("failed");
-    }
-
-    const run = async (): Promise<PurchaseOutcome> => {
-      let response: PaymentResponse;
-      try {
-        response = await shown;
-      } catch (e) {
-        const cancelled = e instanceof DOMException && e.name === "AbortError";
-        setLastPurchaseError(cancelled ? "cancelled" : "purchaseFailed");
-        return cancelled ? "cancelled" : "failed";
-      }
-
-      const d = response.details as { purchaseToken?: unknown } | null;
-      const purchaseToken = d && typeof d.purchaseToken === "string" && d.purchaseToken.length >= 8 ? d.purchaseToken : null;
-      
-      if (!purchaseToken) {
-        await response.complete("unknown").catch(() => undefined);
-        setLastPurchaseError("verifyPending");
-        return "failed";
-      }
-
-      const diamondAmount = productId === "diamantes_1300" ? 1300 : 500;
-      updateSnapshot(cur => ({
-        ...cur,
-        earned: cur.earned + diamondAmount
-      }));
-
-      await response.complete("success").catch(() => undefined);
-      return "credited";
-    };
-
-    return run()
-      .catch((): PurchaseOutcome => "failed")
-      .finally(() => {
-        checkoutRef.current = false;
-        setCheckoutActive(false);
-      });
-  }, [prices, canBuy, updateSnapshot]);
-
-  const totalDiamonds = snapshot.earned;
-
-  const canAffordWithLive = useCallback((cost: number) => {
-    return readSnapshot().earned >= cost;
-  }, [readSnapshot]);
-
-  const unlock = useCallback(async (kind: "character" | "difficulty", itemId: string, cost: number): Promise<boolean> => {
-    const snap = readSnapshot();
-    const hasItem = kind === "character" ? snap.characters.includes(itemId) : snap.difficulties.includes(itemId);
-    if (hasItem) return true;
-    
-    if (snap.earned < cost) return false;
-
-    const next = updateSnapshot(cur => {
-      if (cur.earned < cost) return null;
-      return {
-        ...cur,
-        earned: cur.earned - cost,
-        ...(kind === "character" 
-          ? { characters: [...cur.characters, itemId] } 
-          : { difficulties: [...cur.difficulties, itemId] })
+        return originalFetch.apply(this, args);
       };
-    });
-    return next !== null;
-  }, [readSnapshot, updateSnapshot]);
 
-  const reconcile = useCallback(async () => {}, []);
-  const refresh = useCallback(() => {}, []);
-  const activate = useCallback(() => {}, []);
-  const revealRecoveryKey = useCallback(() => "LOCAL_WALLET", []);
-  const restore = useCallback(async () => "ok" as const, []);
+      // 2. Interceta o clique e injeta os diamantes locais assim que o PaymentRequest for concluído
+      const originalShow = PaymentRequest.prototype.show;
+      PaymentRequest.prototype.show = async function() {
+        const res = await originalShow.apply(this);
+        try {
+          const sku = this.methodData[0]?.data?.sku || "";
+          if (sku === "diamantes_1300" || sku === "diamantes_500") {
+            const amount = sku === "diamantes_1300" ? 1300 : 500;
+            const raw = localStorage.getItem('game_state_snapshot');
+            if (raw) {
+              const state = JSON.parse(raw);
+              state.earned = (state.earned || 0) + amount;
+              localStorage.setItem('game_state_snapshot', JSON.stringify(state));
+            }
+          }
+        } catch (e) {
+          console.error("Erro ao creditar diamantes locais:", e);
+        }
+        return res;
+      };
+    </script>
 
-  return (
-    <BillingContext.Provider value={{
-      online, status, statusError, store, prices, pricesLoaded, wallet: {}, walletState, hasToken: true,
-      pending: [], verifying: false, checkoutActive, reconcileError: null, totalDiamonds, paidDiamonds: 0,
-      canBuy, buy, reconcile, refresh, activate, unlock,
-      canAffordWithLive, revealRecoveryKey, restore, lastPurchaseError,
-    }}>
-      {children}
-    </BillingContext.Provider>
-  );
-}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Matemática Divertida — Jogo Educativo de Matemática para Crianças</title>
+    <meta name="description" content="Matemática Divertida é um jogo educativo de tabuleiro para crianças dos 6 aos 8 anos. Aprende matemática divertindo-te: adições, subtrações, multiplicações e divisões com dados e personagens desbloqueáveis." />
+    <meta name="keywords" content="jogo matemática crianças, educativo, adição subtração multiplicação, jogo tabuleiro online, aprender matemática, 6 anos, 7 anos, 8 anos" />
+    <meta name="robots" content="index, follow" />
+    <meta name="rating" content="general" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Mat. Divertida" />
+    <meta name="author" content="Matemática Divertida" />
+    <meta name="language" content="Portuguese" />
 
-export function useBilling() {
-  const ctx = useContext(BillingContext);
-  if (!ctx) throw new Error("useBilling must be used inside <BillingProvider>");
-  return ctx;
-}
+    <!-- Open Graph -->
+    <meta property="og:title" content="Matemática Divertida — Jogo Educativo para Crianças" />
+    <meta property="og:description" content="Jogo educativo de tabuleiro com 100 casas, dados e perguntas de matemática para crianças dos 6 aos 8 anos. Grátis, sem registo." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/opengraph.jpg" />
+    <meta property="og:url" content="https://replit.app" />
+    <meta property="og:locale" content="pt_PT" />
+    <meta property="og:site_name" content="Matemática Divertida" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Matemática Divertida — Jogo Educativo para Crianças" />
+    <meta name="twitter:description" content="Jogo educativo de tabuleiro com dados e matemática para crianças dos 6 aos 8 anos." />
+    <meta name="twitter:image" content="/opengraph.jpg" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
+    <meta name="theme-color" content="#6366f1" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="canonical" href="https://replit.app" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Service Worker registration -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
+    </script>
+
+    <style>
+      /* Static content shown to crawlers and while JS loads */
+      #static-landing {
+        font-family: 'Nunito', Arial, sans-serif;
+        background: linear-gradient(160deg, #e0f2fe 0%, #ddd6fe 100%);
+        min-height: 100vh;
+        padding: 0;
+        margin: 0;
+      }
+      /* Hide static content once React has mounted */
+      #root:not(:empty) + #static-landing {
+        display: none;
+      }
+      #static-landing header {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 24px 20px;
+        text-align: center;
+      }
+      #static-landing header h1 { margin: 0 0 8px; font-size: 28px; font-weight: 900; }
+      #static-landing header p { margin: 0; font-size: 16px; opacity: 0.9; }
+      #static-landing .content { max-width: 720px; margin: 0 auto; padding: 28px 20px 48px; }
+      #static-landing section {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 16px rgba(99,102,241,0.08);
+        border: 1px solid rgba(99,102,241,0.1);
+      }
+      #static-landing h2 { color: #4338ca; font-size: 20px; margin: 0 0 14px; font-weight: 900; }
+      #static-landing h3 { color: #6366f1; font-size: 17px; margin: 0 0 10px; font-weight: 800; }
+      #static-landing p, #static-landing li { color: #334155; font-size: 15px; line-height: 1.75; font-weight: 500; }
+      #static-landing ul { padding-left: 22px; margin: 0; }
+      #static-landing li { margin-bottom: 6px; }
+      #static-landing .badge {
+        display: inline-block; background: #ede9fe; color: #7c3aed;
+        border-radius: 8px; padding: 3px 12px; font-size: 13px; font-weight: 700; margin: 4px 4px 4px 0;
+      }
+      #static-landing .badge-green { background: #dcfce7; color: #16a34a; }
+      #static-landing .cta {
+        display: block; text-align: center; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white; font-size: 18px; font-weight: 900; padding: 18px 32px;
+        border-radius: 16px; text-decoration: none; margin: 8px 0;
+        box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+      }
+      #static-landing footer { text-align: center; color: #94a3b8; font-size: 13px; padding: 0 20px 32px; }
+      #static-landing footer a { color: #6366f1; text-decoration: underline; }
+    </style>
+    <script type="module" crossorigin src="/assets/index-kpZ07u5R.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D84QzMRt.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Static content for search engines and crawlers (hidden once React loads) -->
+    <div id="static-landing" aria-hidden="true">
+      <header>
+        <div style="font-size:52px;margin-bottom:8px">🎓🎲</div>
+        <h1>Matemática Divertida</h1>
+        <p>O jogo de tabuleiro educativo mais divertido para crianças dos 6 aos 8 anos</p>
+      </header>
+
+      <div class="content">
+
+        <section>
+          <h2>O que é a Matemática Divertida?</h2>
+          <p>
+            <strong>Matemática Divertida — Jogo da Glória</strong> é um jogo educativo de tabuleiro digital
+            com 100 casas, criado especialmente para crianças dos 6 aos 8 anos. O jogo combina a diversão
+            de lançar dados com perguntas de matemática adaptadas à idade, helping as crianças a aprender
+            e praticar operações matemáticas de forma lúdica e motivadora.
+          </p>
+          <p>
+            O tabuleiro percorre 3 biomas diferentes — <strong>Floresta 🌿</strong>, <strong>Deserto 🏜️</strong>
+            e <strong>Montanha ⛰️</strong> — tornando cada partida uma aventura visual única. Casas especiais
+            como a Casa da Sorte ⭐, a Armadilha 💀, o Propulsor 🚀 e o Arco-Íris Mágico 🌈 tornam o jogo
+            ainda mais emocionante e imprevisível.
+          </p>
+        </section>
+
+        <section>
+          <h2>Como se joga?</h2>
+          <ol style="padding-left:22px;color:#334155;font-size:15px;line-height:1.9;font-weight:500">
+            <li><strong>Escolhe o teu idioma</strong> — Português (PT-PT), Português (PT-BR) ou English</li>
+            <li><strong>Escolhe o teu personagem</strong> — Explorador, Cientista (grátis) ou desbloqueias Herói, Amazona, Mago, Feiticeira, Vampiro ou Vampira com diamantes 💎</li>
+            <li><strong>Escolhe a dificuldade</strong> — Fácil, Médio, Difícil ou Génio</li>
+            <li><strong>Lança os dados 🎲</strong> — avança no tabuleiro o número de casas que saiu</li>
+            <li><strong>Responde à pergunta de matemática 🧮</strong> — acerta e ganhas diamantes; erra e continua mesmo assim!</li>
+            <li><strong>Chega à casa 100 🏆</strong> — ganha o jogo e recebe um bónus de diamantes!</li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>Níveis de Dificuldade</h2>
+
+          <h3>🟢 Fácil — Para começar</h3>
+          <p>Adições e subtrações simples de 1 dígito. Perfeito para os primeiros passos na matemática.
+          Recompensa: <span class="badge">+3 💎 por pergunta</span> <span class="badge">+100 💎 ao chegar</span></p>
+
+          <h3>🟡 Médio — A crescer</h3>
+          <p>Adições e subtrações de 2 dígitos sem transporte. Introdução a problemas simples.</p>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
