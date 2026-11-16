@@ -1,46 +1,197 @@
-    <script>
-      // Guarda a referência original do fetch antes de o alterarmos
-      const originalFetch = window.fetch;
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useGameState } from "@/context/game-state-context";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
-      // 1. Intercetor de pedidos à API para simular o servidor e a carteira
-      window.fetch = async function(...args) {
-        const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || "";
+export type StoreSupport = "checking" | "supported" | "unsupported";
+export type WalletState = "idle" | "loading" | "ready" | "error";
+export type PurchaseOutcome = "credited" | "pending" | "cancelled" | "failed";
+export type RestoreResult = "ok" | "same" | "needs-confirm";
+
+const PRODUCT_IDS = ["diamantes_500", "diamantes_1300"];
+const PLAY_BILLING = "https://google.com";
+
+interface ItemPrice { currency: string; value: string }
+interface ItemDetails { itemId: string; title?: string; price: ItemPrice }
+
+interface BillingValue {
+  online: boolean;
+  status: { ready: boolean } | null;
+  statusError: boolean;
+  store: StoreSupport;
+  prices: Partial<Record<string, ItemPrice>>;
+  pricesLoaded: boolean;
+  wallet: any;
+  walletState: WalletState;
+  hasToken: boolean;
+  pending: any[];
+  verifying: boolean;
+  checkoutActive: boolean;
+  reconcileError: string | null;
+  totalDiamonds: number;
+  paidDiamonds: number;
+  canBuy: (productId: string) => boolean;
+  buy: (productId: string, label: string) => Promise<PurchaseOutcome>;
+  reconcile: () => Promise<void>;
+  refresh: () => void;
+  activate: () => void;
+  unlock: (kind: "character" | "difficulty", itemId: string, cost: number) => Promise<boolean>;
+  canAffordWithLive: (cost: number) => boolean;
+  revealRecoveryKey: () => string | null;
+  restore: (key: string, force: boolean) => Promise<RestoreResult>;
+  lastPurchaseError: string | null;
+}
+
+const BillingContext = createContext<BillingValue | null>(null);
+
+export function BillingProvider({ children }: { children: ReactNode }) {
+  const { updateSnapshot, readSnapshot, snapshot } = useGameState();
+  const online = useOnlineStatus();
+  
+  const [status] = useState({ ready: true });
+  const [statusError] = useState(false);
+  const [store, setStore] = useState<StoreSupport>("checking");
+  const [prices, setPrices] = useState<Partial<Record<string, ItemPrice>>>({});
+  const [pricesLoaded, setPricesLoaded] = useState(false);
+  
+  const [walletState] = useState<WalletState>("ready");
+  const [checkoutActive, setCheckoutActive] = useState(false);
+  const [lastPurchaseError, setLastPurchaseError] = useState<string | null>(null);
+  
+  const checkoutRef = useRef(false);
+
+  useEffect(() => {
+    const hasDigitalGoods = typeof window !== "undefined" && "getDigitalGoodsService" in window && typeof PaymentRequest !== "undefined";
+    if (!hasDigitalGoods) { setStore("unsupported"); return; }
+    
+    (async () => {
+      try {
+        const svc = await (window as any).getDigitalGoodsService(PLAY_BILLING);
+        if (!svc) { setStore("unsupported"); return; }
+        setStore("supported");
         
-        // Se o jogo procurar o estado da loja ou os dados da carteira do utilizador
-        if (url.includes('/api/billing/status') || url.includes('/api/')) {
-          return new Response(JSON.stringify({ 
-            ready: true, 
-            status: "active",
-            id: "local_user_wallet",
-            paidBalance: 0,
-            unlocks: ["explorador", "cientista", "facil"],
-            revision: 1
-          }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          });
+        const details = await svc.getDetails(PRODUCT_IDS);
+        const out: Record<string, ItemPrice> = {};
+        for (const d of details) {
+          if (PRODUCT_IDS.includes(d.itemId) && d.price) out[d.itemId] = d.price;
         }
-        return originalFetch.apply(this, args);
-      };
+        setPrices(out);
+      } catch {
+        setStore("unsupported");
+      } finally {
+        setPricesLoaded(true);
+      }
+    })();
+  }, []);
 
-      // 2. Interceta o sucesso do pagamento e injeta os diamantes no telemóvel
-      const originalShow = PaymentRequest.prototype.show;
-      PaymentRequest.prototype.show = async function() {
-        const res = await originalShow.apply(this);
-        try {
-          const sku = this.methodData[0]?.data?.sku || "";
-          if (sku === "diamantes_1300" || sku === "diamantes_500") {
-            const amount = sku === "diamantes_1300" ? 1300 : 500;
-            const raw = localStorage.getItem('game_state_snapshot');
-            if (raw) {
-              const state = JSON.parse(raw);
-              state.earned = (state.earned || 0) + amount;
-              localStorage.setItem('game_state_snapshot', JSON.stringify(state));
-            }
-          }
-        } catch (e) {
-          console.error("Erro ao creditar diamantes locais:", e);
-        }
-        return res;
+  const canBuy = useCallback((productId: string) =>
+    store === "supported" && !!prices[productId] && !checkoutActive,
+  [store, prices, checkoutActive]);
+
+  const buy = useCallback((productId: string, label: string): Promise<PurchaseOutcome> => {
+    const price = prices[productId];
+    if (checkoutRef.current || !canBuy(productId) || !price) return Promise.resolve("failed");
+    
+    checkoutRef.current = true;
+    setCheckoutActive(true);
+    setLastPurchaseError(null);
+    
+    let shown: Promise<PaymentResponse>;
+    try {
+      const req = new PaymentRequest(
+        [{ supportedMethods: PLAY_BILLING, data: { sku: productId } }],
+        { total: { label, amount: { currency: price.currency, value: price.value } } },
+      );
+      shown = req.show();
+    } catch {
+      checkoutRef.current = false;
+      setCheckoutActive(false);
+      setLastPurchaseError("purchaseFailed");
+      return Promise.resolve("failed");
+    }
+
+    const run = async (): Promise<PurchaseOutcome> => {
+      let response: PaymentResponse;
+      try {
+        response = await shown;
+      } catch (e) {
+        const cancelled = e instanceof DOMException && e.name === "AbortError";
+        setLastPurchaseError(cancelled ? "cancelled" : "purchaseFailed");
+        return cancelled ? "cancelled" : "failed";
+      }
+
+      const d = response.details as { purchaseToken?: unknown } | null;
+      const purchaseToken = d && typeof d.purchaseToken === "string" && d.purchaseToken.length >= 8 ? d.purchaseToken : null;
+      
+      if (!purchaseToken) {
+        await response.complete("unknown").catch(() => undefined);
+        setLastPurchaseError("verifyPending");
+        return "failed";
+      }
+
+      const diamondAmount = productId === "diamantes_1300" ? 1300 : 500;
+      updateSnapshot(cur => ({
+        ...cur,
+        earned: cur.earned + diamondAmount
+      }));
+
+      await response.complete("success").catch(() => undefined);
+      return "credited";
+    };
+
+    return run()
+      .catch((): PurchaseOutcome => "failed")
+      .finally(() => {
+        checkoutRef.current = false;
+        setCheckoutActive(false);
+      });
+  }, [prices, canBuy, updateSnapshot]);
+
+  const totalDiamonds = snapshot.earned;
+
+  const canAffordWithLive = useCallback((cost: number) => {
+    return readSnapshot().earned >= cost;
+  }, [readSnapshot]);
+
+  const unlock = useCallback(async (kind: "character" | "difficulty", itemId: string, cost: number): Promise<boolean> => {
+    const snap = readSnapshot();
+    const hasItem = kind === "character" ? snap.characters.includes(itemId) : snap.difficulties.includes(itemId);
+    if (hasItem) return true;
+    
+    if (snap.earned < cost) return false;
+
+    const next = updateSnapshot(cur => {
+      if (cur.earned < cost) return null;
+      return {
+        ...cur,
+        earned: cur.earned - cost,
+        ...(kind === "character" 
+          ? { characters: [...cur.characters, itemId] } 
+          : { difficulties: [...cur.difficulties, itemId] })
       };
-    </script>
+    });
+    return next !== null;
+  }, [readSnapshot, updateSnapshot]);
+
+  const reconcile = useCallback(async () => {}, []);
+  const refresh = useCallback(() => {}, []);
+  const activate = useCallback(() => {}, []);
+  const revealRecoveryKey = useCallback(() => "LOCAL_WALLET", []);
+  const restore = useCallback(async () => "ok" as const, []);
+
+  return (
+    <BillingContext.Provider value={{
+      online, status, statusError, store, prices, pricesLoaded, wallet: {}, walletState, hasToken: true,
+      pending: [], verifying: false, checkoutActive, reconcileError: null, totalDiamonds, paidDiamonds: 0,
+      canBuy, buy, reconcile, refresh, activate, unlock,
+      canAffordWithLive, revealRecoveryKey, restore, lastPurchaseError,
+    }}>
+      {children}
+    </BillingContext.Provider>
+  );
+}
+
+export function useBilling() {
+  const ctx = useContext(BillingContext);
+  if (!ctx) throw new Error("useBilling must be used inside <BillingProvider>");
+  return ctx;
+}
