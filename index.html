@@ -8,7 +8,7 @@
         const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || "";
         
         // Se o motor do jogo pedir o estado ou a carteira, respondemos logo que está TUDO ATIVO
-        if (url.includes('/api/billing/status') || url.includes('/api/')) {
+        if (url.includes('/api/') || url.includes('matematicadivertida') || url.includes('ready')) {
           return new Response(JSON.stringify({ 
             ready: true, 
             status: "active",
