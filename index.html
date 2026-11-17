@@ -2,14 +2,21 @@
 <html lang="pt">
   <head>
     <script>
-      // Intercetor de pedidos à API do Replit para correr em modo 100% estático local
+      // 1. Bloqueio absoluto e imediato contra o servidor do Replit
       const originalFetch = window.fetch;
       window.fetch = async function(...args) {
         const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || "";
         
-        // 1. Simula o estado do servidor como ativo (remove o erro de indisponibilidade)
+        // Se o motor do jogo pedir o estado ou a carteira, respondemos logo que está TUDO ATIVO
         if (url.includes('/api/billing/status') || url.includes('/api/')) {
-          return new Response(JSON.stringify({ ready: true, status: "active" }), {
+          return new Response(JSON.stringify({ 
+            ready: true, 
+            status: "active",
+            id: "local_wallet",
+            paidBalance: 1000,
+            unlocks: ["explorador", "cientista", "facil"],
+            revision: 99
+          }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
           });
@@ -17,12 +24,12 @@
         return originalFetch.apply(this, args);
       };
 
-      // 2. Interceta o clique e injeta os diamantes locais assim que o PaymentRequest for concluído
+      // 2. Override ao PaymentRequest para simular o sucesso das compras na Google Play
       const originalShow = PaymentRequest.prototype.show;
       PaymentRequest.prototype.show = async function() {
         const res = await originalShow.apply(this);
         try {
-          const sku = this.methodData[0]?.data?.sku || "";
+          const sku = this.methodData?.[0]?.data?.sku || "";
           if (sku === "diamantes_1300" || sku === "diamantes_500") {
             const amount = sku === "diamantes_1300" ? 1300 : 500;
             const raw = localStorage.getItem('game_state_snapshot');
@@ -33,12 +40,11 @@
             }
           }
         } catch (e) {
-          console.error("Erro ao creditar diamantes locais:", e);
+          console.error("Erro na injeção local:", e);
         }
         return res;
       };
     </script>
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Matemática Divertida — Jogo Educativo de Matemática para Crianças</title>
