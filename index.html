@@ -95,6 +95,14 @@
     </script>
 
     <style>
+            /* Esconde por completo a secção da chave de recuperação de pais */
+      div:has(> input[value="LOCAL_WALLET"]), 
+      div:has(> p:contains("chave")), 
+      button:has(span:contains("recupera")),
+      input[value="LOCAL_WALLET"] { 
+        display: none !important; 
+      }
+
       /* Static content shown to crawlers and while JS loads */
       #static-landing {
         font-family: 'Nunito', Arial, sans-serif;
